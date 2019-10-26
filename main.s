@@ -5,13 +5,6 @@
 
 .text
 
-
-# ANA
-
-
-
-.text
-
 IMPRIME_TABULEIRO:
 FORA1:	li t1,0xFF000000	# endereco inicial da Memoria VGA - Frame 1
 	li t2,0xFF012C00	# endereco final 
@@ -27,4 +20,6 @@ LOOP2: 	beq t1,t2,FIM		# Se for o último endereço então sai do loop
 # devolve o controle ao sistema operacional
 FIM:	li a7,10		# syscall de exit - duda
 	ecall
+	
+FUNCA_ANA:
 	
