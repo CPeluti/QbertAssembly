@@ -4,10 +4,7 @@ CONTRABARRAene: .string "\n"
 MATRIZ: .word 9, 9
 
 .text
-
-
 	la s0, MATRIZ
-
 	li t0, 0
 	li t1, 324
 	li s1,1
@@ -16,18 +13,22 @@ WHILE:	beq t0, t1, FIM
 	addi t0, t0, 4
 	addi s0, s0, 4
 	j WHILE
-FIM:	li t0, 0
-	li a7, 1
-WHILE1: beq t2, 9, FIM1
-	li t4, 0
-	WHILE2:	beq t4, 9, FIM2
-		slli t5, t3, 2
-		add t5, t5, 4
-		lw a0, t5(s0)
-		addi t4, 4
+FIM:	
+	li t1,9
+	li t0,0
+	la s0,MATRIZ
+WHILE1: beq t0, t1, FIM1
+	li a7,1
+	li t2, 0
+	WHILE2:	beq t2, t1, FIM2
+		lw a0, 0(s0)
+		addi s0,s0,4
+		addi t2, t2, 1
+		ecall
 		j WHILE2
-	FIM2:	addi t3, t3, 4
-		la a0, CONTRABARRAENE
+	FIM2:	addi t0, t0, 1
+		li a7,4
+		la a0, CONTRABARRAene
 		ecall
 		j WHILE1
 FIM1:	li a7, 10
