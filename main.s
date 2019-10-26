@@ -5,6 +5,13 @@
 
 .text
 
+
+# ANA
+
+
+
+.text
+
 IMPRIME_TABULEIRO:
 FORA1:	li t1,0xFF000000	# endereco inicial da Memoria VGA - Frame 1
 	li t2,0xFF012C00	# endereco final 
