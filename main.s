@@ -21,5 +21,5 @@ LOOP2: 	beq t1,t2,FIM		# Se for o último endereço então sai do loop
 FIM:	li a7,10		# syscall de exit - duda
 	ecall
 	
-FUNCA_ANA:
+FUNCAO_ANA:
 	
