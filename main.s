@@ -4,6 +4,15 @@
 
 
 .text
+MAIN:
+
+	call IMPRIME_TABULEIRO
+
+	li a7,10		# syscall de exit - duda
+	ecall
+	
+	
+
 
 IMPRIME_TABULEIRO:
 FORA1:	li t1,0xFF000000	# endereco inicial da Memoria VGA - Frame 1
@@ -16,10 +25,7 @@ LOOP2: 	beq t1,t2,FIM		# Se for o último endereço então sai do loop
 	addi t1,t1,4		# soma 4 ao endereço
 	addi s1,s1,4
 	j LOOP2			# volta a verificar
-	
+FIM:
+	ret	
 # devolve o controle ao sistema operacional
-FIM:	li a7,10		# syscall de exit - duda
-	ecall
-	
-FUNCAO_ANA:
 	
