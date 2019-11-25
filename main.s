@@ -21,12 +21,12 @@ NUMERO_DE_LINHAS: .word 7
 	call PREENCHE_MATRIZ_TRINGULO
 	li t0,2
 	sw t0,0(s0)
-	
+	li s4,1
 MAIN:	
-	mv t0,s2
+	bnez s3,FIM_JOGO	
 	call LE_TECLA
 	call PROCESSA_TECLA
-	bne t0,s2,LACO_PRINT
+	beq s4,s2,FIM_LACO_PRINT
 	LACO_PRINT:
 		la a0,tabuleiro
 		li t0,0xFF000000
@@ -37,8 +37,10 @@ MAIN:
 		lw t0,0(s1)
 		add a1,zero,t0
 		call imprimeCoisas
+	FIM_LACO_PRINT:
+	mv s4,s2
 	j MAIN
-FIM_JOGO: li a7,10	# syscall de exit - duda
+FIM_JOGO: li a7,10	# syscall de exit
 	ecall
 	
 	
@@ -92,6 +94,7 @@ LE_TECLA:
 	li t1,0xFF200000		# carrega o endere�o de controle do KDMMIO
 	lw t0,0(t1)			# Le bit de Controle Teclado
 	andi t0,t0,0x0001		# mascara o bit menos significativo
+	mv a1,zero
    	beq t0,zero,FIM   	   	# Se n�o h� tecla pressionada ent�o vai para FIM
   	lw t2,4(t1)  			# le o valor da tecla tecla
   	mv a1,t2
@@ -101,25 +104,61 @@ PROCESSA_TECLA:
 	lw t0,TECLA_w
 	lw t1,TECLA_a
 	lw t2,TECLA_s
-	lw t3,TECLA_d
+	lw t3,TECLA_d 
 	
+	
+	beqz a1,FIM_MOVIMENTO_W
 	beq a1,t0,MOVIMENTO_W
 	beq a1,t1,MOVIMENTO_A
 	beq a1,t2,MOVIMENTO_S
-	beq a1,t3,MOVIMENTO_d
+	beq a1,t3,MOVIMENTO_D
 	MOVIMENTO_W:
-		add s0,s0,s2
 		addi s0,s0,-28
+		addi s1,s1,-28
+		addi s2,s2,-28
 		lw t0,0(s0)
-		beq s2,zero,MORREU_W
-		beqz t0,MORREU_W
-		
+		bne s2,zero,FIM_MOVIMENTO_W
+		bnez t0,FIM_MOVIMENTO_W
 		MORREU_W:
 		li s3,1
+		addi s0,s0,28
 	FIM_MOVIMENTO_W:ret 
 	MOVIMENTO_A:
+		addi s0,s0,-32
+		addi s1,s1,-32
+		addi s2,s2,-32
+		lw t0,0(s0)
+		bne s2,zero,FIM_MOVIMENTO_W
+		bnez t0,FIM_MOVIMENTO_A
+		MORREU_A:
+		li s3,1
+		addi s0,s0,32
+		addi s1,s1,32
+	FIM_MOVIMENTO_A:ret 
 	MOVIMENTO_S:
+		addi s0,s0,28
+		addi s1,s1,28
+		addi s2,s2,28
+		lw t0,0(s0)
+		bne s2,zero,FIM_MOVIMENTO_S
+		bnez t0,FIM_MOVIMENTO_S
+		MORREU_S:
+		li s3,1
+		addi s0,s0,-28
+		addi s1,s1,-28
+	FIM_MOVIMENTO_S:ret 
 	MOVIMENTO_D:
+		addi s0,s0,32
+		addi s1,s1,32
+		addi s2,s2,32
+		lw t0,0(s0)
+		bne s2,zero,FIM_MOVIMENTO_D
+		bnez t0,FIM_MOVIMENTO_D
+		MORREU_D:
+		li s3,1
+		addi s0,s0,-32
+		addi s1,s1,-32
+	FIM_MOVIMENTO_D:ret 
 
 
 
