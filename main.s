@@ -9,9 +9,11 @@ TECLA_s: .word 0x73
 TECLA_d: .word 0x64
 NUMERO_DE_LINHAS: .word 7
 .text
-
-	la s0,MATRIZ
-	la s1,MATRIZ_POSICOES
+	
+	la s0,MATRIZ 		#matriz de movimentação
+	la s1,MATRIZ_POSICOES #matriz dos endereços do bitmap
+	li s2,0 #posicao inicial do qbert
+	li s3,0 #flag de morto
 	
 	mv a1, s0#a1 = matriz
 	li a2,1
@@ -21,19 +23,20 @@ NUMERO_DE_LINHAS: .word 7
 	sw t0,0(s0)
 	
 MAIN:	
-	
-	la a0,tabuleiro
-	li t0,0xFF000000
-	add a1,zero,t0
-	call imprimeCoisas
-	
-	la a0,qbertlateral
-	lw t0,84(s1)
-	add a1,zero,t0
-	call imprimeCoisas
-	
+	mv t0,s2
 	call LE_TECLA
-
+	call PROCESSA_TECLA
+	bne t0,s2,LACO_PRINT
+	LACO_PRINT:
+		la a0,tabuleiro
+		li t0,0xFF000000
+		add a1,zero,t0
+		call imprimeCoisas
+		
+		la a0,qbertlateral
+		lw t0,0(s1)
+		add a1,zero,t0
+		call imprimeCoisas
 	j MAIN
 FIM_JOGO: li a7,10	# syscall de exit - duda
 	ecall
@@ -86,14 +89,40 @@ PREENCHE_MATRIZ_TRINGULO: #A1 = MATRIZ, A2=VALOR PARA PREENCHER, A3= NUMERO DE L
 LE_TECLA:
 		
 	### Apenas verifica se h� tecla pressionada
-	li t1,0xFF200000
-	KEY2:			# carrega o endere�o de controle do KDMMIO
-		lw t0,0(t1)			# Le bit de Controle Teclado
-		andi t0,t0,0x0001		# mascara o bit menos significativo
-	   	beq t0,zero,KEY2   	   	# Se n�o h� tecla pressionada ent�o vai para FIM
-  		lw t2,4(t1)  			# le o valor da tecla tecla
-  		mv a0,t2
-	FIM:	ret				# retorna
-	
+	li t1,0xFF200000		# carrega o endere�o de controle do KDMMIO
+	lw t0,0(t1)			# Le bit de Controle Teclado
+	andi t0,t0,0x0001		# mascara o bit menos significativo
+   	beq t0,zero,FIM   	   	# Se n�o h� tecla pressionada ent�o vai para FIM
+  	lw t2,4(t1)  			# le o valor da tecla tecla
+  	mv a1,t2
+FIM:	ret				# retorna
+
 PROCESSA_TECLA:
+	lw t0,TECLA_w
+	lw t1,TECLA_a
+	lw t2,TECLA_s
+	lw t3,TECLA_d
 	
+	beq a1,t0,MOVIMENTO_W
+	beq a1,t1,MOVIMENTO_A
+	beq a1,t2,MOVIMENTO_S
+	beq a1,t3,MOVIMENTO_d
+	MOVIMENTO_W:
+		add s0,s0,s2
+		addi s0,s0,-28
+		lw t0,0(s0)
+		beq s2,zero,MORREU_W
+		beqz t0,MORREU_W
+		
+		MORREU_W:
+		li s3,1
+	FIM_MOVIMENTO_W:ret 
+	MOVIMENTO_A:
+	MOVIMENTO_S:
+	MOVIMENTO_D:
+
+
+
+
+
+
