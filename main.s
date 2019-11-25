@@ -2,10 +2,16 @@
 .include "tabuleiro.data"
 .include "qbert-lateral.data"
 MATRIZ: .word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+MATRIZ_POSICOES: .word 0xff000a98,0,0,0,0,0,0,0xff002d84,0xff002dac,0,0,0,0,0,0xff005074,0xff005098,0xff0050c0,0,0,0,0,0xff007360,0xff007384,0xff0073a8,0xff0073d0,0,0,0,0xff00964c,0xff009670,0xff009698,0xff0096bc,0xff0096e4,0,0,0xff00b938,0xff00b960,0xff00b984,0xff00b9ac,0xff00b9d0,0xff00b9f8,0,0xff00dc28,0xff00dc4c,0xff00dc74,0xff00dc98,0xff00dcc0,0xff00dce4,0xff00dd08
+TECLA_w: .word 0x77
+TECLA_a: .word 0x61
+TECLA_s: .word 0x73
+TECLA_d: .word 0x64
 NUMERO_DE_LINHAS: .word 7
 .text
-MAIN:
+
 	la s0,MATRIZ
+	la s1,MATRIZ_POSICOES
 	
 	mv a1, s0#a1 = matriz
 	li a2,1
@@ -14,26 +20,31 @@ MAIN:
 	li t0,2
 	sw t0,0(s0)
 	
+MAIN:	
+	
 	la a0,tabuleiro
 	li t0,0xFF000000
 	add a1,zero,t0
 	call imprimeCoisas
 	
 	la a0,qbertlateral
-	li t0,0xFF000958
+	lw t0,84(s1)
 	add a1,zero,t0
 	call imprimeCoisas
+	
+	call LE_TECLA
 
-	li a7,10	# syscall de exit - duda
+	j MAIN
+FIM_JOGO: li a7,10	# syscall de exit - duda
 	ecall
 	
 	
-imprimeCoisas:                        # Funcao pra printar a imagem, recebe (a0 = origem da imagem, a1 = onde começa imagem, a2=altura, a3 = largura)
+imprimeCoisas:                        # Funcao pra printar a imagem, recebe (a0 = origem da imagem, a1 = onde comeca imagem, a2=altura, a3 = largura)
     lw a2, 4(a0)                 # altura
     lw a3, 0(a0)                 # largura
     addi a0, a0, 8                # vetor de bytes origem 
     for_linhas:	blez a2, fim_print # enquanto a2 > 0, print qbert
-        mv t0, a1            # endereço do inicio linha atual
+        mv t0, a1            # endereï¿½o do inicio linha atual
         mv t1, a3            # t1 = largura
         for_colunas:	blez t1, fim_da_largura # enquanto t1 > 0
             lw t2, 0(a0)        # le uma word do vetor
@@ -71,3 +82,18 @@ PREENCHE_MATRIZ_TRINGULO: #A1 = MATRIZ, A2=VALOR PARA PREENCHER, A3= NUMERO DE L
 		j WHILE_LINHAS
 	FIM_WHILE_LINHAS:
 	ret
+
+LE_TECLA:
+		
+	### Apenas verifica se hï¿½ tecla pressionada
+	li t1,0xFF200000
+	KEY2:			# carrega o endereï¿½o de controle do KDMMIO
+		lw t0,0(t1)			# Le bit de Controle Teclado
+		andi t0,t0,0x0001		# mascara o bit menos significativo
+	   	beq t0,zero,KEY2   	   	# Se nï¿½o hï¿½ tecla pressionada entï¿½o vai para FIM
+  		lw t2,4(t1)  			# le o valor da tecla tecla
+  		mv a0,t2
+	FIM:	ret				# retorna
+	
+PROCESSA_TECLA:
+	
