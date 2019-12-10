@@ -66,7 +66,8 @@ TECLA_e: .word 0x65
 NUMERO_DE_LINHAS: .word 7
 
 .text
-	
+	#########################################################################################################
+	#INICIALIZAÇÃO DO JOGO
 	la s0,MATRIZ 					#matriz de movimentação
 	la s1,MATRIZ_POSICOES 				#matriz dos endereços do bitmap
 	li s2,0 					#posicao do qbert
@@ -79,11 +80,12 @@ NUMERO_DE_LINHAS: .word 7
 	li t0,2						#t0=2
 	sw t0,0(s0)					#s0[0]=2
 	li s4,1						#s4=1 para a primeira execucao do programa
-	
+	##########################################################################################################
+	#TELA DE MENU
 	la a0,menustart
 	li t0,0xFF000000
 	add a1,zero,t0
-	call imprimeCoisas
+	call IMPRIME
 	
 	lw a3,TECLA_e
 	li a1,0
@@ -91,6 +93,8 @@ NUMERO_DE_LINHAS: .word 7
 STARTMENU: 	beq a1,a3,MAIN
 	call LE_TECLA
 	j STARTMENU
+	##########################################################################################################
+	#MAIN	
 MAIN:	
 	li a5,1						#se qbert morrer finaliza o jogo
 	call LE_TECLA
@@ -104,18 +108,18 @@ MAIN:
 		la a0,tabuleiro
 		li t0,0xFF000000
 		add a1,zero,t0
-		call imprimeCoisas			#printa tabuleiro
+		call IMPRIME			#printa tabuleiro
 		
 		li t4,49
 		la t5,MATRIZ_COLORIDA
-		WHILE_PRINTA_QUADRADOS: beqz t4,FIM_WHILE_PRINTA_QUADRADOS
+		WHILE_PRINTA_QUADRADOS: beqz t4,FIM_WHILE_PRINTA_QUADRADOS	#printa quadrados coloridos
 			addi t4,t4,-1
 			lw t6,0(t5)
 			addi t5,t5,4
 			beqz t6,WHILE_PRINTA_QUADRADOS
 			mv a0,t6
 			li a1,0xFF000000
-			call imprimeCoisas
+			call IMPRIME
 
 			j WHILE_PRINTA_QUADRADOS	
 		
@@ -123,12 +127,12 @@ MAIN:
 		la a0,qbertlateral
 		lw t0,0(s1)
 		add a1,zero,t0
-		call imprimeCoisas			#printa qbert
+		call IMPRIME			#printa qbert
 	FIM_LACO_PRINT:
 	mv s4,s2					#s4 = s2
-	blez s5,FIM_JOGO_VITORIA
+	blez s5,FIM_JOGO_VITORIA			#se qbert ganhou
 	j MAIN
-FIM_JOGO_MORTE: 
+FIM_JOGO_MORTE: 					#rotina de morte
 	
 	
 	
@@ -155,7 +159,7 @@ FIM1:
 	la a0,youdied
 	li t0,0xFF000000
 	add a1,zero,t0
-	call imprimeCoisas
+	call IMPRIME
 	
 	li a0,40		# define a nota
 	li a1,1500		# define a duração da nota em ms
@@ -166,7 +170,7 @@ FIM1:
 	li a7,10		# define o syscall Exit
 	ecall			# exit
 	
-FIM_JOGO_VITORIA:
+FIM_JOGO_VITORIA:		#rotina de vitória
 	
 	
 	
@@ -195,7 +199,7 @@ FIM2:
 	la a0,youwin
 	li t0,0xFF000000
 	add a1,zero,t0
-	call imprimeCoisas
+	call IMPRIME
 	li a0,40		# define a nota
 	li a1,1500		# define a duração da nota em ms
 	li a2,127		# define o instrumento
@@ -205,27 +209,28 @@ FIM2:
 	
 	li a7,10		# define o syscall Exit
 	ecall			# exit
+	###################################################################################################################
 	
 	
-imprimeCoisas:                       		 	# Funcao pra printar a imagem, recebe (a0 = origem da imagem, a1 = onde comeca imagem, a2=altura, a3 = largura)
-    lw a2, 4(a0)                 			# altura
-    lw a3, 0(a0)                 			# largura
-    addi a0, a0, 8                			# vetor de bytes origem 
-    for_linhas:	blez a2, fim_print 			# enquanto a2 > 0, print qbert
+IMPRIME:                       		 	# Funcao pra printar a imagem, recebe (a0 = origem da imagem, a1 = onde comeca imagem, a2=altura, a3 = largura)
+	lw a2, 4(a0)                 			# altura
+  	lw a3, 0(a0)                 			# largura
+  	addi a0, a0, 8                			# vetor de bytes origem 
+  	WHILE_LINHAS1:blez a2, FIM_IMPRIME			# enquanto a2 > 0, print qbert
         mv t0, a1            				# endere?o do inicio linha atual
         mv t1, a3            				# t1 = largura
-        for_colunas:	blez t1, fim_da_largura 	# enquanto t1 > 0
-            lw t2, 0(a0)        			# le uma word do vetor
-            sw t2, 0(t0)        			# Salva no display a word lida do vetor 
-            addi a0,a0,4        			# a0 += 4
-            addi t0,t0,4        			# t0 += 4
-            addi t1,t1,-4        			# t1 -=4
-            j for_colunas
-        fim_da_largura:
-            addi a1,a1,320         			# desceu uma linha
-            addi a2,a2,-1        			# a2--
-            j for_linhas
-fim_print:    ret	
+        WHILE_COLUNAS1:	blez t1, FIM_COLUNAS 	# enquanto t1 > 0
+        	lw t2, 0(a0)        			# le uma word do vetor
+		sw t2, 0(t0)        			# Salva no display a word lida do vetor 
+           	addi a0,a0,4        			# a0 += 4
+            	addi t0,t0,4        			# t0 += 4
+            	addi t1,t1,-4        			# t1 -=4
+            	j WHILE_COLUNAS1
+        FIM_COLUNAS:
+            	addi a1,a1,320         			# desceu uma linha
+        	addi a2,a2,-1        			# a2--
+            	j WHILE_LINHAS1
+FIM_IMPRIME:ret	
 
 	
 PREENCHE_MATRIZ_TRINGULO: #A1 = MATRIZ, A2=VALOR PARA PREENCHER, A3= NUMERO DE LINHAS
@@ -251,7 +256,7 @@ PREENCHE_MATRIZ_TRINGULO: #A1 = MATRIZ, A2=VALOR PARA PREENCHER, A3= NUMERO DE L
 	FIM_WHILE_LINHAS:
 	ret
 
-LE_TECLA:
+LE_TECLA:	#le uma tecla quando for pressionada e retorna o valor em a1
 		
 	### Apenas verifica se ha tecla pressionada
 	li t1,0xFF200000				# carrega o endereco de controle do KDMMIO
@@ -264,7 +269,7 @@ LE_TECLA:
   	
 FIM:	ret						# retorna
 
-PROCESSA_TECLA:
+PROCESSA_TECLA:						#processa da tecla armazenado em a1
 	lw t0,TECLA_w					# t0='w'
 	lw t1,TECLA_a					# t1='a'
 	lw t2,TECLA_s					# t2='s'
@@ -371,7 +376,7 @@ PROCESSA_TECLA:
 		mv a5,s2
 	FIM_MOVIMENTO_D:ret 
 	
-CRIA_MATRIZ_COLORIDA:
+CRIA_MATRIZ_COLORIDA:				#escolhe os quadrados que precisam ser printados e salva na matriz em s6
 	la s6,MATRIZ_COLORIDA
 	escolheQuadrado(0,QUADRADO1)
 	escolheQuadrado(28,QUADRADO2)
